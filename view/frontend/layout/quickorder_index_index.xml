@@ -1,0 +1,49 @@
+<?xml version="1.0" ?>
+<page xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:noNamespaceSchemaLocation="urn:magento:framework:View/Layout/etc/page_configuration.xsd">
+    <head>
+        <title>Quick Order</title>
+        <css src="BeeBots_QuickOrderForm::css/lib/selectize.default.css"/>
+    </head>
+    <body>
+        <referenceBlock name="page.main.title">
+            <action method="setPageTitle">
+                <argument translate="true" name="title" xsi:type="string">Quick Order</argument>
+            </action>
+        </referenceBlock>
+        <move element="page.main.title" destination="content" before="-" />
+        <referenceBlock name="breadcrumbs">
+            <action method="addCrumb">
+                <argument name="crumbName" xsi:type="string">home</argument>
+                <argument name="crumbInfo" xsi:type="array">
+                    <item name="title" xsi:type="string">Go to Home Page</item>
+                    <item name="label" xsi:type="string">Home</item>
+                    <item name="link" xsi:type="string">{{baseUrl}}</item>
+                </argument>
+            </action>
+            <action method="addCrumb">
+                <argument name="crumbName" xsi:type="string">quick-order</argument>
+                <argument name="crumbInfo" xsi:type="array">
+                    <item name="title" xsi:type="string">Quick Order</item>
+                    <item name="label" xsi:type="string">Quick Order</item>
+                </argument>
+            </action>
+        </referenceBlock>
+        <referenceContainer name="content">
+            <block
+                name="beebots.quick.order.uicomponent"
+                class="BeeBots\QuickOrderForm\Block\ItemData"
+                template="BeeBots_QuickOrderForm::script.phtml">
+                <arguments>
+                    <argument name="jsLayout" xsi:type="array">
+                        <item name="types" xsi:type="array"/>
+                        <item name="components" xsi:type="array">
+                            <item name="beebots-quick-order-form" xsi:type="array">
+                                <item name="component" xsi:type="string">BeeBots_QuickOrderForm/js/beebots-quick-order-form</item>
+                            </item>
+                        </item>
+                    </argument>
+                </arguments>
+            </block>
+        </referenceContainer>
+    </body>
+</page>

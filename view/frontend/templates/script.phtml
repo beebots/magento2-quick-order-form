@@ -1,0 +1,11 @@
+<div data-block="beebots-quick-order-form" data-bind="scope: 'beebots-quick-order-form'">
+    <!-- ko template: getTemplate() --><!-- /ko -->
+</div>
+
+<script type="text/x-magento-init">
+    {
+        "[data-block='beebots-quick-order-form']": {
+            "Magento_Ui/js/core/app": <?=  $block->getJsLayout() ?>
+        }
+    }
+</script>
