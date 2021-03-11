@@ -21,11 +21,6 @@ class ItemData extends Template
     private $collectionFactory;
 
     /**
-     * @var Quote
-     */
-    private $sessionQuote;
-
-    /**
      * @var FormKey
      */
     private $formKey;
@@ -70,7 +65,7 @@ class ItemData extends Template
                 'type_id',
                 [
                     'in',
-                    ['simple', 'amgiftcard']
+                    ['simple']
                 ]
             )
             ->addAttributeToFilter('status', Status::STATUS_ENABLED);
@@ -156,7 +151,7 @@ class ItemData extends Template
 
     public function getFormPostUrl()
     {
-        return $this->escapeUrl($this->getUrl('*/cart/adder'));
+        return $this->escapeUrl($this->getUrl('quick-order/cart/add'));
     }
 
     /**

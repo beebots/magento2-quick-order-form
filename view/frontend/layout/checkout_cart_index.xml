@@ -1,0 +1,30 @@
+<page xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" layout="1column" xsi:noNamespaceSchemaLocation="urn:magento:framework:View/Layout/etc/page_configuration.xsd">
+    <update handle="checkout_common"/>
+    <head>
+        <css src="BeeBots_QuickOrderForm::css/lib/selectize.default.css"/>
+    </head>
+    <body>
+
+        <referenceContainer name="checkout.cart.container" htmlClass="cart-container">
+                <container name="checkout.quick.order.container" htmlTag="div" htmlClass="checkout-quick-order-container" after="checkout.cart.form">
+                    <block
+                        name="beebots.quick.order.uicomponent"
+                        class="BeeBots\QuickOrderForm\Block\ItemData"
+                        template="BeeBots_QuickOrderForm::script.phtml"
+                        ifconfig="beebots/quick_order_checkout/enabled">
+                        <arguments>
+                            <argument name="jsLayout" xsi:type="array">
+                                <item name="types" xsi:type="array"/>
+                                <item name="components" xsi:type="array">
+                                    <item name="beebots-quick-order-form" xsi:type="array">
+                                        <item name="component" xsi:type="string">BeeBots_QuickOrderForm/js/beebots-quick-order-form</item>
+                                        <item name="button_text" xsi:type="string">Add to Cart</item>
+                                    </item>
+                                </item>
+                            </argument>
+                        </arguments>
+                    </block>
+                </container>
+        </referenceContainer>
+    </body>
+</page>

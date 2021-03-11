@@ -4,39 +4,42 @@ define([
     'selectize',
     'ko',
     'mage/translate',
+    'Magento_Ui/js/model/messageList',
+    'Magento_Customer/js/customer-data',
     'mage/mage',
     'Magento_Ui/js/lib/validation/validator',
     'validation',
-], function($, Component, selectize, ko, $t) {
+], function($, Component, selectize, ko, $t, messageList, customerData) {
     'use strict';
 
     return Component.extend({
         defaults: {
             template: 'BeeBots_QuickOrderForm/quick-order-form',
         },
-        post_url: '/quick-order/cart/adder',
+        post_url: '/quick-order/cart/add',
         redirect_url: null,
         product_data: null,
         form_key: '',
         form_id: 'beebots-quick-order-form',
         requestSent: false,
         fields: ko.observableArray([]),
-        quote_id: '',
+        button_text: 'Checkout',
 
         initialize: function() {
             this._super();
-            this.initializeValidator();
             this.observe(['requestSent']);
         },
 
         onItemSelectorChange: function(event){
             let $element = $(event.target);
-            let $qty = $element.closest('.new-item-row').find('.js-input-qty-selector');
-            $qty.focus();
+            this.addItem(this, $element);
         },
 
-        onAddItemSubmit: function (data, event) {
-            const $element = $(event.target);
+        onAddItemSubmit: function(data, event) {
+            this.addItem(data, $(event.target));
+        },
+
+        addItem: function (data, $element) {
             const $parent = $element.closest('.new-item-row');
             const $qtyInput = $parent.find('input.js-input-qty-selector');
             const $selectInput = $parent.find('select.js-order-item-selector');
@@ -51,17 +54,18 @@ define([
                 return;
             }
 
-
             data.fields.push({
                 id: $selectInput.val(),
                 qty: $qtyInput.val(),
             });
 
+            //reinit selectize
             let selectized = $selectInput[0].selectize;
-            selectized.removeItem($selectInput.val());
+            selectized.removeItem($selectInput.val(), true);
             selectized.refreshItems();
             selectized.refreshOptions();
-            $qtyInput.val('');
+            this.resetValidation($selectizeInput);
+            $qtyInput.val('1');
         },
 
         isValidQty: function($element) {
@@ -86,22 +90,10 @@ define([
             return true;
         },
 
-        removeItem: function (row) {
-            this.fields.remove(row);
-        },
+        removeItem: function (data) {
 
-        addBlankRow: function () {
-            this.fields.push({
-                id: null,
-                qty: null,
-            })
-        },
+            this.fields.remove(data);
 
-        addItem: function(id, qty) {
-            this.fields.push({
-                id: id,
-                qty: qty,
-            })
         },
 
         initializeItemSelectorElement: function (element) {
@@ -133,6 +125,12 @@ define([
                 this.onItemSelectorChange(event);
             }.bind(this));
 
+            let $parent = $element.closest('.new-item-row');
+            let $selectizeInput = $parent.find('.selectize-input input');
+
+            $selectizeInput.on('propertychange input', function(event) {
+                this.clearValidation(this, event);
+            }.bind(this));
         },
 
         buildProductSearchItem: function(item, escape){
@@ -153,6 +151,11 @@ define([
         },
 
         onFormSubmit: function() {
+
+            if (this.fields().length === 0) {
+                return;
+            }
+
             let $form = $('#'+this.form_id);
             this.requestSent(true);
             $.ajax({
@@ -162,45 +165,49 @@ define([
                 data: $form.serialize(),
                 success: this.onAjaxSuccess.bind(this),
                 error: function(response) {
-                    console.log(response);
-
-                },
-
+                    this.onAjaxError(response);
+                }.bind(this),
             });
         },
 
         onAjaxSuccess: function() {
             window.location = this.redirect_url ?? self.location;
+            this.addMessage('Items added to cart.', 'success');
         },
 
         onAjaxError: function(response) {
-            console.log(response);
+            this.addMessage('Items could not be added cart.', 'error');
         },
 
-        initializeValidator: function () {
-            // validate quantity field
-            $.validator.addMethod('validate-quantity', function (qtyVal, element, options) {
-                if (qtyVal) {
-                    if (!$.validator.methods['validate-greater-than-zero'].call(this, qtyVal, element, options)) {
-                        // must be greater than 0
-                        $(element).data('error', $t('Quantity must be an integer greater than 0'));
-                        return false;
-                    }
-                }
+        addMessage: function(message, type) {
+            let customerMessages = customerData.get('messages')() || {},
+                messages = customerMessages.messages || [];
 
-                return true;
-
-            }, function (params, element) {
-                return $(element).data('error');
+            messages.push({
+                text: message,
+                type: type
             });
 
+            customerMessages.messages = messages;
+
+            customerData.set('messages', customerMessages);
         },
 
-        afterAdd: function () {
-            let form = $('#'+this.form_id);
-            form.mage('validation', {});
-        }
+        getProductById: function(productId){
+            return this.product_data.find(function(item){
+                return item.id === productId;
+            });
+        },
 
+        clearValidation: function(data, event) {
+            let $element = $(event.target);
+            this.resetValidation($element);
+        },
+
+        resetValidation: function($element) {
+            $element.removeAttr('isvalid');
+            $element[0].setCustomValidity('');
+        },
     });
 });
 

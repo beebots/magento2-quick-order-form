@@ -16,7 +16,7 @@ use Magento\Framework\Controller\ResultInterface;
 use Magento\Framework\Data\Form\FormKey\Validator;
 use Magento\Framework\Exception\LocalizedException;
 
-class Adder extends Action
+class Add extends Action
 {
     /** @var RequestInterface|Http */
     private $request;
