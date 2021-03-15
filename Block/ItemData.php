@@ -4,7 +4,6 @@ namespace BeeBots\QuickOrderForm\Block;
 
 use Exception;
 use Magento\Backend\Block\Template\Context;
-use Magento\Backend\Model\Session\Quote;
 use Magento\Catalog\Api\Data\ProductInterface;
 use Magento\Catalog\Model\Product\Attribute\Source\Status;
 use Magento\Catalog\Model\ResourceModel\Product\CollectionFactory;

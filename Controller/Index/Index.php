@@ -2,11 +2,12 @@
 
 namespace BeeBots\QuickOrderForm\Controller\Index;
 
+use BeeBots\QuickOrderForm\Model\QuickOrderConfig;
 use Magento\Framework\App\Action\Action;
 use Magento\Framework\App\Action\Context;
-use Magento\Framework\App\Config\ScopeConfigInterface;
 use Magento\Framework\App\ResponseInterface;
 use Magento\Framework\Controller\ResultInterface;
+use Magento\Framework\Exception\NotFoundException;
 use Magento\Framework\View\Result\PageFactory;
 
 class Index extends Action
@@ -16,22 +17,15 @@ class Index extends Action
 
 
     /**
-     * @var ScopeConfigInterface
-     */
-    private $scopeConfig;
-
-    /**
      * Index constructor.
      *
      * @param Context $context
      * @param PageFactory $pageFactory
-     * @param ScopeConfigInterface $scopeConfig
      */
-    public function __construct(Context $context, PageFactory $pageFactory, ScopeConfigInterface $scopeConfig)
+    public function __construct(Context $context, PageFactory $pageFactory)
     {
         parent::__construct($context);
         $this->pageFactory = $pageFactory;
-        $this->scopeConfig = $scopeConfig;
     }
 
     /**
@@ -40,9 +34,17 @@ class Index extends Action
      * Note: Request will be added as operation argument in future
      *
      * @return ResultInterface|ResponseInterface
+     * @throws NotFoundException
      */
     public function execute()
     {
+        /** @var QuickOrderConfig $quickOrderConfig */
+        $quickOrderConfig = $this->_objectManager
+            ->get(QuickOrderConfig::class);
+
+        if (! $quickOrderConfig->isStandAloneEnabled()) {
+            throw new NotFoundException(__("Page not found"));
+        }
 
         return $this->pageFactory->create();
     }

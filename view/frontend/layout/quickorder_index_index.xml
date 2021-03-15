@@ -10,29 +10,12 @@
                 <argument translate="true" name="title" xsi:type="string">Quick Order</argument>
             </action>
         </referenceBlock>
-        <move element="page.main.title" destination="content" before="-" />
-        <referenceBlock name="breadcrumbs">
-            <action method="addCrumb">
-                <argument name="crumbName" xsi:type="string">home</argument>
-                <argument name="crumbInfo" xsi:type="array">
-                    <item name="title" xsi:type="string">Go to Home Page</item>
-                    <item name="label" xsi:type="string">Home</item>
-                    <item name="link" xsi:type="string">{{baseUrl}}</item>
-                </argument>
-            </action>
-            <action method="addCrumb">
-                <argument name="crumbName" xsi:type="string">quick-order</argument>
-                <argument name="crumbInfo" xsi:type="array">
-                    <item name="title" xsi:type="string">Quick Order</item>
-                    <item name="label" xsi:type="string">Quick Order</item>
-                </argument>
-            </action>
-        </referenceBlock>
         <referenceContainer name="content">
             <block
                 name="beebots.quick.order.uicomponent"
                 class="BeeBots\QuickOrderForm\Block\ItemData"
-                template="BeeBots_QuickOrderForm::script.phtml">
+                template="BeeBots_QuickOrderForm::script.phtml"
+                ifconfig="beebots/quick_order_form/enabled">
                 <arguments>
                     <argument name="jsLayout" xsi:type="array">
                         <item name="types" xsi:type="array"/>

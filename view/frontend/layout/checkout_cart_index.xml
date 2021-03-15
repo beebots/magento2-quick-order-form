@@ -10,7 +10,8 @@
                     <block
                         name="beebots.quick.order.uicomponent"
                         class="BeeBots\QuickOrderForm\Block\ItemData"
-                        template="BeeBots_QuickOrderForm::script.phtml">
+                        template="BeeBots_QuickOrderForm::script.phtml"
+                        ifconfig="beebots/quick_order_form/enabled_on_checkout">
                         <arguments>
                             <argument name="jsLayout" xsi:type="array">
                                 <item name="types" xsi:type="array"/>

@@ -1,0 +1,26 @@
+<?xml version="1.0"?>
+<config xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:noNamespaceSchemaLocation="urn:magento:module:Magento_Config:etc/system_file.xsd">
+    <system>
+        <tab id="beebots" translate="label" sortOrder="950">
+            <label>Bee Bots</label>
+        </tab>
+        <section id="quick_order_form" translate="label" type="text" sortOrder="95" showInDefault="1" showInWebsite="0" showInStore="0">
+            <label>Quick Order Form</label>
+            <tab>beebots</tab>
+            <resource>BeeBots_QuickOrderForm::config</resource>
+            <group id="quick_order_form" translate="label" type="text" sortOrder="1" showInDefault="1" showInWebsite="0" showInStore="0">
+                <label>Bee Bots Quick Order Form Configuration</label>
+                <field id="quick_order_form_enabled" translate="label" sortOrder="1" type="select" showInDefault="1" showInStore="0" showInWebsite="0" canRestore="0">
+                    <label>Stand Alone Form Enabled</label>
+                    <source_model>Magento\Config\Model\Config\Source\Yesno</source_model>
+                    <config_path>beebots/quick_order_form/enabled</config_path>
+                </field>
+                <field id="quick_order_checkout_enabled" translate="label" sortOrder="1" type="select" showInDefault="1" showInStore="0" showInWebsite="0" canRestore="0">
+                    <label>Enabled on Checkout</label>
+                    <source_model>Magento\Config\Model\Config\Source\Yesno</source_model>
+                    <config_path>beebots/quick_order_form/enabled_on_checkout</config_path>
+                </field>
+            </group>
+        </section>
+    </system>
+</config>
