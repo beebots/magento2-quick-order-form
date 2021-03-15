@@ -24,6 +24,11 @@ define([
         requestSent: false,
         fields: ko.observableArray([]),
         button_text: 'Checkout',
+        new_item_row_selector: '.new-item-row',
+        has_focus: true,
+        new_item_event: new CustomEvent('newQuickOrderItemAddedEvent', {
+            bubbles: true
+        }),
 
         initialize: function() {
             this._super();
@@ -40,9 +45,11 @@ define([
         },
 
         addItem: function (data, $element) {
-            const $parent = $element.closest('.new-item-row');
+            const $parent = $element.closest(this.new_item_row_selector);
             const $qtyInput = $parent.find('input.js-input-qty-selector');
             const $selectInput = $parent.find('select.js-order-item-selector');
+            const selectedItemId = $selectInput.val();
+            const qtyValue = $qtyInput.val();
 
             if (! this.isValidQty($qtyInput)) {
                 return;
@@ -54,18 +61,22 @@ define([
                 return;
             }
 
-            data.fields.push({
-                id: $selectInput.val(),
-                qty: $qtyInput.val(),
-            });
-
-            //reinit selectize
             let selectized = $selectInput[0].selectize;
             selectized.removeItem($selectInput.val(), true);
             selectized.refreshItems();
-            selectized.refreshOptions();
+            selectized.refreshOptions(false);
+            selectized.$control_input.css({position: 'unset', left: 'unset', opacity: 1});
             this.resetValidation($selectizeInput);
             $qtyInput.val('1');
+
+            data.fields.push({
+                id: selectedItemId,
+                qty: qtyValue,
+                isFocused: true,
+            });
+
+            $parent[0].dispatchEvent(this.new_item_event);
+
         },
 
         isValidQty: function($element) {
@@ -91,9 +102,7 @@ define([
         },
 
         removeItem: function (data) {
-
             this.fields.remove(data);
-
         },
 
         initializeItemSelectorElement: function (element) {
@@ -125,7 +134,7 @@ define([
                 this.onItemSelectorChange(event);
             }.bind(this));
 
-            let $parent = $element.closest('.new-item-row');
+            let $parent = $element.closest(this.new_item_row_selector);
             let $selectizeInput = $parent.find('.selectize-input input');
 
             $selectizeInput.on('propertychange input', function(event) {
