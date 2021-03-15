@@ -7,12 +7,11 @@ use Magento\Catalog\Api\Data\ProductInterface;
 use Magento\Catalog\Model\Product\Type;
 use Magento\Catalog\Model\ProductRepository;
 use Magento\Catalog\Model\ResourceModel\Product;
+use Magento\CatalogInventory\Model\StockRegistry;
+use Magento\Checkout\Model\Cart;
 use Magento\ConfigurableProduct\Model\Product\Type\Configurable;
-use Magento\Customer\Model\Session;
 use Magento\Framework\Exception\LocalizedException;
 use Magento\Framework\Exception\NoSuchEntityException;
-use Magento\Quote\Api\CartRepositoryInterface;
-use Magento\Quote\Model\Quote;
 
 class AddToCartService
 {
@@ -33,45 +32,36 @@ class AddToCartService
     private $productResource;
 
     /**
-     * @var \Magento\Quote\Model\QuoteFactory
+     * @var StockRegistry
      */
-    private $quoteFactory;
+    private $stockRegistry;
 
     /**
-     * @var CartRepositoryInterface
+     * @var Cart
      */
-    private $cartRepository;
-
-    /**
-     * @var Session
-     */
-    private $session;
+    private $cart;
 
     /**
      * AddToCartService constructor.
      *
-     * @param Session $checkoutSession
-     * @param \Magento\Quote\Model\QuoteFactory $quoteFactory
      * @param ProductRepository $productRepository
      * @param Configurable $configurable
      * @param Product $productResource
-     * @param CartRepositoryInterface $cartRepository
-     * @param Session $session
+     * @param StockRegistry $stockRegistry
+     * @param Cart $cart
      */
     public function __construct(
-        \Magento\Quote\Model\QuoteFactory $quoteFactory,
         ProductRepository $productRepository,
         Configurable $configurable,
         Product $productResource,
-        CartRepositoryInterface $cartRepository,
-        Session $session
+        StockRegistry $stockRegistry,
+        Cart $cart
     ) {
         $this->productRepository = $productRepository;
         $this->configurable = $configurable;
         $this->productResource = $productResource;
-        $this->quoteFactory = $quoteFactory;
-        $this->cartRepository = $cartRepository;
-        $this->session = $session;
+        $this->stockRegistry = $stockRegistry;
+        $this->cart = $cart;
     }
 
     /**
@@ -85,53 +75,47 @@ class AddToCartService
     {
         $result = [];
         $productsAdded = false;
-        $cart = $this->getCart();
 
         // make sure product type is simple
         foreach ($ids as $index => $id) {
             $qty = $quantities[$index];
-            if (! $id && ! $qty) {
-                // skip when both values are falsy
-                continue;
-            }
-            if ($id && ! $qty) {
-                $result['client_errors']['invalid_qty_for_skus'][] = $id;
-                continue;
-            }
-            if (! is_numeric($qty)) {
-                $result['client_errors']['invalid_qty_for_skus'][] = $id;
-                continue;
-            }
-            if (! $id && $qty) {
-                $result['client_errors']['missing_sku'][] = $index;
+            if (! $id || ! $qty) {
+                $result['client_errors']['missing_fields'][] = 'Both item and qty are required.';
                 continue;
             }
             try {
                 $product = $this->productRepository->getById($id, false);
+                $stockItem = $this->stockRegistry->getStockItem($id);
+
+                if (! $stockItem->getIsInStock()) {
+                    $result['client_errors']['out_of_stock'][] = "Item {$product->getSku()} is out of stock.";
+                    continue;
+                }
+
                 if ($product->getTypeId() !== Type::TYPE_SIMPLE) {
-                    $result['client_errors']['invalid_skus'][] = $id;
+                    $result['client_errors']['invalid_skus'][] = $product->getSku();
                     continue;
                 }
                 $configurable = $this->getConfigurableProductFromSimple($product->getEntityId());
                 if ($configurable) {
                     $configuration = $this->getProductConfigurationOfConfigurableFromSimple($configurable, $product);
                     $configuration->setData('qty', $qty);
-                    $cart->addProduct($configurable, $configuration);
+                    $this->cart->addProduct($configurable, $configuration);
                 } else {
-                    $cart->addProduct($product, $qty);
+                    $this->cart->addProduct($product, $qty);
                 }
                 $productsAdded = true;
             } catch (NoSuchEntityException $e) {
-                $result['client_errors']['invalid_skus'][] = $id;
+                $result['client_errors']['invalid_skus'][] = "Invalid Sku for id: {$id}";
             } catch (LocalizedException $e) {
                 if ($e->getMessage() !== 'You need to choose options for your item.') {
                     $result['client_errors']['localized_exception'][] = $e->getMessage();
                 }
-                $result['client_errors']['invalid_skus'][] = $id;
+                $result['client_errors']['invalid_skus'][] = "Invalid Sku for id: {$id}";
             }
         }
         if (! array_key_exists('client_errors', $result) && $productsAdded) {
-            $this->cartRepository->save($cart);
+            $this->cart->save();
         }
         return $result;
     }
@@ -162,26 +146,8 @@ class AddToCartService
         $configuration = new Configuration();
         foreach ($attributes as $key => $attribute) {
             /** @noinspection PhpUndefinedMethodInspection */
-            $configuration->setData('super_attribute',[$key => $product->getData($attribute['attribute_code'])]);
+            $configuration->setData('super_attribute', [$key => $product->getData($attribute['attribute_code'])]);
         }
         return $configuration;
-    }
-
-    private function getCart()
-    {
-        try {
-            /** @var Quote $quote */
-            $quote = $this->quoteFactory->create();
-            $customerQuote = $this->cartRepository->getActiveForCustomer(
-                $this->session->getCustomerId()
-            );
-            $cart = $quote->loadActive($customerQuote->getId());
-
-        } catch (NoSuchEntityException $e) {
-            $a=1;
-            return;
-        }
-
-        return $cart;
     }
 }
