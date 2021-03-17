@@ -26,6 +26,8 @@ define([
         button_text: 'Checkout',
         new_item_row_selector: '.new-item-row',
         has_focus: true,
+        selectize_placeholder: 'Select a SKU',
+
         new_item_event: new CustomEvent('newQuickOrderItemAddedEvent', {
             bubbles: true
         }),
@@ -113,7 +115,7 @@ define([
                 searchField: 'searchField',
                 selectOnTab: false,
                 options: this.product_data,
-                placeholder: 'Select a SKU',
+                placeholder: this.selectize_placeholder,
                 allowEmptyOption: true,
                 valueField: 'id',
                 render: {
@@ -172,14 +174,26 @@ define([
                 dataType: 'json',
                 url: this.post_url,
                 data: $form.serialize(),
-                success: this.onAjaxSuccess.bind(this),
+                success: function(response) {
+                    this.onAjaxSuccess(response);
+                }.bind(this),
                 error: function(response) {
                     this.onAjaxError(response);
                 }.bind(this),
             });
         },
 
-        onAjaxSuccess: function() {
+        onAjaxSuccess: function(response) {
+
+            if (response.hasOwnProperty('client_errors')) {
+                let errors = response.client_errors;
+                for (const error in errors) {
+                    this.addMessage(`${errors[error][0]}`, 'error');
+                    this.requestSent(false);
+                    return;
+                }
+            }
+
             window.location = this.redirect_url ?? self.location;
             this.addMessage('Items added to cart.', 'success');
         },
@@ -198,7 +212,6 @@ define([
             });
 
             customerMessages.messages = messages;
-
             customerData.set('messages', customerMessages);
         },
 

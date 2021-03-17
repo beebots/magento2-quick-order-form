@@ -5,11 +5,6 @@
         <css src="BeeBots_QuickOrderForm::css/lib/selectize.default.css"/>
     </head>
     <body>
-        <referenceBlock name="page.main.title">
-            <action method="setPageTitle">
-                <argument translate="true" name="title" xsi:type="string">Quick Order</argument>
-            </action>
-        </referenceBlock>
         <referenceContainer name="content">
             <block
                 name="beebots.quick.order.uicomponent"

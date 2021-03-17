@@ -1,18 +1,5 @@
 <form data-bind="attr: {action: post_url, id: form_id}, submit: onFormSubmit" method="post" autocomplete="off">
     <input type="hidden" name="form_key" data-bind="attr: {value: form_key}">
-    <!-- ko foreach: fields -->
-    <div class="grid">
-        <div class="col-tablet-landscape-4">
-            <select class="input-text js-id-selector" data-bind="attr: {name: 'product-selector['+$index()+']', 'data-product-id': $data.id, id: 'product-selector-id-' + $index()}" afterRender="$parent.initializeItemSelectorElement('#product-selector-id-' + $index())"></select>
-        </div>
-        <div class="col-tablet-landscape-1">
-            <input class="input-text" data-bind="attr: {name: 'qty['+$index()+']'}, textInput: qty" type="text" data-validate="{'validate-quantity':true}">
-        </div>
-        <div class="col-tablet-landscape-2">
-            <button class="btn-action inverse" data-bind="i18n: 'Remove Item', event: {click: $parent.removeItem.bind($parent, $data)}"></button>
-        </div>
-    </div>
-    <!-- /ko -->
     <div class="grid">
         <div class="col-tablet-landscape-4">
             <span class="form-input-label"><!-- ko i18n: 'Item:' --><!-- /ko --></span>
@@ -21,6 +8,19 @@
             <span class="form-input-label"><!-- ko i18n: 'Qty:' --><!-- /ko --></span>
         </div>
     </div>
+    <!-- ko foreach: fields -->
+    <div class="grid">
+        <div class="col-tablet-landscape-4">
+            <select class="input-text js-id-selector" data-bind="attr: {name: 'product-selector['+$index()+']', 'data-product-id': $data.id, id: 'product-selector-id-' + $index()}" afterRender="$parent.initializeItemSelectorElement('#product-selector-id-' + $index())"></select>
+        </div>
+        <div class="col-tablet-landscape-1">
+            <input class="input-text" data-bind="attr: {name: 'qty['+$index()+']'}, hasFocus: $data.isFocused, textInput: qty" type="text" data-validate="{'validate-quantity':true}">
+        </div>
+        <div class="col-tablet-landscape-2">
+            <button class="btn-action inverse" data-bind="i18n: 'Remove Item', event: {click: $parent.removeItem.bind($parent, $data)}"></button>
+        </div>
+    </div>
+    <!-- /ko -->
     <div class="new-item-row">
         <div class="form-input-group grid">
             <div class="col-tablet-landscape-4">
@@ -28,9 +28,6 @@
             </div>
             <div class="col-tablet-landscape-1">
                 <input class="input-text js-input-qty-selector form-input" data-bind="event: {input: clearValidation}" value="1" type="number" placeholder="Quantity">
-            </div>
-            <div class="col-tablet-landscape-1">
-                <button class="btn-normal" data-bind="i18n: 'Add Item', event: {click: onAddItemSubmit}"></button>
             </div>
         </div>
     </div>
