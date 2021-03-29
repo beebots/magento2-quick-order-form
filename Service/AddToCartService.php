@@ -88,7 +88,8 @@ class AddToCartService
                 $stockItem = $this->stockRegistry->getStockItem($id);
 
                 if (! $stockItem->getIsInStock()) {
-                    $result['client_errors']['out_of_stock'][] = "Item {$product->getSku()} is out of stock.";
+                    $result['client_errors']['out_of_stock'][] =
+                        "{$product->getName()} ({$product->getSku()}) is out of stock.";
                     continue;
                 }
 
