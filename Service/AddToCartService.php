@@ -69,9 +69,11 @@ class AddToCartService
      * @SuppressWarnings(PHPMD.NPathComplexity)
      * @param array $ids
      * @param array $quantities
+     * @param bool $resetTotalsCollectedFlag helpful if form is exposed on checkout
+     *
      * @return array
      */
-    public function addProducts(array $ids, array $quantities): array
+    public function addProducts(array $ids, array $quantities, bool $resetTotalsCollectedFlag = false): array
     {
         $result = [];
         $productsAdded = false;
@@ -117,6 +119,14 @@ class AddToCartService
         }
         if (! array_key_exists('client_errors', $result) && $productsAdded) {
             $this->cart->save();
+
+            if ($resetTotalsCollectedFlag) {
+                //if quick order is exposed on checkout, saving before other updates
+                //can prevent totals on existing cart items from being recalculated.
+                //Reset if needed.
+                $this->cart->getQuote()->setTotalsCollectedFlag(false);
+            }
+
         }
         return $result;
     }
