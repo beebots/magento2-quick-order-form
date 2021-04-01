@@ -145,11 +145,30 @@ define([
         },
 
         buildProductSearchItem: function(item, escape){
-            return '<div>' +
-                (item.sku ? '<span class="sku">' + escape(item.sku) + ':</span> ' : '') +
-                (item.name ? '<span class="name">' + escape(item.name) + '</span>' : '') +
-                (item.tierPrice ? '<span class="price">' + escape(this.formatPriceForDisplay(item.tierPrice)) + '</span>' : '') +
-                '</div>';
+            // return '<div>' +
+            //     '<div class="inline-block">'+
+            //         (item.sku ? '<span class="sku">' + escape(item.sku) + ':</span> ' : '') +
+            //         (item.name ? '<span class="name">' + escape(item.name) + '</span>' : '') +
+            //     '</div>'+
+            //     '<div class="inline-block">'+
+            //         (item.tierPrice ? '<span class="price">' + escape(this.formatPriceForDisplay(item.tierPrice)) + '</span>' : '') +
+            //     '</div>'+
+            //     '<div class="size">'+escape(item.size)+'</div>' +
+            // '</div>';
+
+            return '<div class="product-item-details">'+
+                        '<div class="product-item-name">'+
+                            '<strong>'+
+                                (item.name ? '<span class="name">' + escape(item.name) + '</span>' : '') +
+                            '</strong>'+
+                        '</div>'+
+                        '<div class="product-item-size inline-block">'+
+                                (item.name ? '<span class="size">' + escape(item.size) + '</span>' : '') +
+                        '</div>'+
+                        '<div class="product-item-price inline-block">'+
+                            (item.tierPrice ? '<span class="price">' + escape(this.formatPriceForDisplay(item.tierPrice)) + '</span>' : '') +
+                        '</div>'+
+                    '</div>';
         },
 
         formatPriceForDisplay: function(price){

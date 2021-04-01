@@ -77,6 +77,8 @@ class ItemData extends Template
                 'id' => $product->getId(),
                 'sku' => $product->getSku(),
                 'name' => $product->getName(),
+                'size' => $product->getProductSize() ?? '',
+                'flavor' => $product->getFlavor() ? $product->getAttributeText('flavor') : '',
                 'retailPrice' => $product->getPrice(),
                 'tierPrice' => $this->getTierPrice($product),
             ];
