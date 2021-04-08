@@ -17,6 +17,7 @@
                         <item name="components" xsi:type="array">
                             <item name="beebots-quick-order-form" xsi:type="array">
                                 <item name="component" xsi:type="string">BeeBots_QuickOrderForm/js/beebots-quick-order-form</item>
+                                <item name="redirect_url" xsi:type="string">/checkout/cart</item>
                             </item>
                         </item>
                     </argument>

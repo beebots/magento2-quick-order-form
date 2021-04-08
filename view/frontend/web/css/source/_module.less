@@ -1,3 +1,17 @@
+.selectize-input > .product-item-details {
+    display: revert;
+
+    &:not(.focus) {
+        -webkit-mask-image: linear-gradient(to bottom, black 50%, transparent 100%);
+        mask-image: linear-gradient(to bottom, black 50%, transparent 100%);
+    }
+
+}
+
+.selectize-input.has-items {
+    max-height: 42px;
+}
+
 .selectize-input span.price {
     //margin-left: 20px;
 }
@@ -13,7 +27,7 @@
 }
 .product-item-price {
     position: relative;
-    bottom: 5px;
+    bottom: 15px;
     font-size: 14px;
     font-weight: bold;
 }
