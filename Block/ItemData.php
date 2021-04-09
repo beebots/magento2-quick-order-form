@@ -5,6 +5,7 @@ namespace BeeBots\QuickOrderForm\Block;
 use Exception;
 use Magento\Backend\Block\Template\Context;
 use Magento\Catalog\Api\Data\ProductInterface;
+use Magento\Catalog\Model\Product;
 use Magento\Catalog\Model\Product\Attribute\Source\Status;
 use Magento\Catalog\Model\ResourceModel\Product\CollectionFactory;
 use Magento\Customer\Model\Session;
@@ -70,8 +71,15 @@ class ItemData extends Template
             ->addAttributeToFilter('status', Status::STATUS_ENABLED);
 
         $items = [];
-        /** @var ProductInterface $product */
+        /** @var ProductInterface|Product $product */
         foreach ($productCollection as $product) {
+
+            if ($attribute = $product->getAttributeText('unavailable_for_purchase')) {
+                if ($attribute->getText() === 'Yes') {
+                    continue;
+                }
+            }
+
             $item = [
                 'searchField' => $product->getSku() . ' ' . $product->getName(),
                 'id' => $product->getId(),
