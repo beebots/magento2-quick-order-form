@@ -1,37 +1,36 @@
 <form data-bind="attr: {action: post_url, id: form_id}, submit: onFormSubmit" method="post" autocomplete="off">
     <input type="hidden" name="form_key" data-bind="attr: {value: form_key}">
-    <div class="grid">
-        <div class="col-tablet-landscape-4">
-            <span class="form-input-label"><!-- ko i18n: 'Item:' --><!-- /ko --></span>
-        </div>
-        <div class="col-tablet-landscape-1">
-            <span class="form-input-label"><!-- ko i18n: 'Qty:' --><!-- /ko --></span>
-        </div>
-    </div>
     <!-- ko foreach: fields -->
-    <div class="grid">
-        <div class="col-tablet-landscape-4">
+    <div class="grid select-item-row">
+        <div class="quick-order-add-item col-tablet-landscape-4">
             <select class="input-text js-id-selector" data-bind="attr: {name: 'product-selector['+$index()+']', 'data-product-id': $data.id, id: 'product-selector-id-' + $index()}" afterRender="$parent.initializeItemSelectorElement('#product-selector-id-' + $index())"></select>
         </div>
-        <div class="col-tablet-landscape-1">
-            <input class="input-text" data-bind="attr: {name: 'qty['+$index()+']'}, hasFocus: $data.isFocused, textInput: qty" type="text" data-validate="{'validate-quantity':true}">
+        <div class="col-tablet-landscape-4 col-mobile-4 margin-bottom-20">
+            <div class="form-input-field">
+                <label class="form-input-label">Qty:</label>
+                <input class="input-text" data-bind="attr: {name: 'qty['+$index()+']'}, hasFocus: $data.isFocused, textInput: qty" type="text" data-validate="{'validate-quantity':true}">
+            </div>
         </div>
-        <div class="col-tablet-landscape-2">
-            <button class="btn-action inverse" data-bind="i18n: 'Remove Item', event: {click: $parent.removeItem.bind($parent, $data)}"></button>
+        <div class="col-tablet-landscape-2 col-tablet-landscape-offset-2 col-mobile-offset-4 col-mobile-4 margin-bottom-20 vertical-center">
+            <div class="item-actions">
+                <a href="#" tabindex="-1" title="Remove item" class="action action-delete link-icon" data-bind="event: {click: $parent.removeItem.bind($parent, $data)}">
+                    <span><i class="far fa-times-circle"></i> Remove</span>
+                </a>
+            </div>
         </div>
     </div>
     <!-- /ko -->
-    <div class="new-item-row">
-        <div class="form-input-group grid">
-            <div class="col-tablet-landscape-4">
-                <select class="order-item-selector js-order-item-selector" afterRender="initializeItemSelectorElement"></select>
-            </div>
-            <div class="col-tablet-landscape-1">
+    <div class="grid new-item-row">
+        <div class="quick-order-add-product col-tablet-landscape-4">
+            <select class="order-item-selector js-order-item-selector" afterRender="initializeItemSelectorElement"></select>
+        </div>
+        <div class="col-tablet-landscape-4 col-mobile-4 margin-bottom-20">
+            <div class="form-input-field">
+                <label class="form-input-label">Qty:</label>
                 <input class="input-text js-input-qty-selector form-input" data-bind="event: {input: clearValidation}" value="1" type="number" placeholder="Quantity">
             </div>
         </div>
     </div>
-    <hr>
     <div class="grid">
         <div class="col-tablet-landscape-2">
             <button type="submit" class="btn-action" data-bind="i18n: button_text, disable: requestSent"></button>
