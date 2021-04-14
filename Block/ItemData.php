@@ -2,6 +2,8 @@
 
 namespace BeeBots\QuickOrderForm\Block;
 
+use Banyan\Utilities\Cache\CacheKeyGenerator;
+use Banyan\Utilities\Cache\CacheLifetime;
 use Exception;
 use Magento\Backend\Block\Template\Context;
 use Magento\Catalog\Api\Data\ProductInterface;
@@ -9,21 +11,16 @@ use Magento\Catalog\Model\Product;
 use Magento\Catalog\Model\Product\Attribute\Source\Status;
 use Magento\Catalog\Model\ResourceModel\Product\CollectionFactory;
 use Magento\Customer\Model\Session;
-use Magento\Framework\Data\Form\FormKey;
-use Magento\Framework\Exception\NoSuchEntityException;
 use Magento\Framework\View\Element\Template;
 
 class ItemData extends Template
 {
+    use CacheLifetime;
+
     /**
      * @var CollectionFactory
      */
     private $collectionFactory;
-
-    /**
-     * @var FormKey
-     */
-    private $formKey;
 
     /**
      * @var Session
@@ -31,25 +28,30 @@ class ItemData extends Template
     private $customerSession;
 
     /**
+     * @var CacheKeyGenerator
+     */
+    private $cacheKeyGenerator;
+
+    /**
      * ItemSearch constructor.
      *
      * @param Context $context
      * @param CollectionFactory $collectionFactory
-     * @param FormKey $formKey
      * @param Session $customerSession
+     * @param CacheKeyGenerator $cacheKeyGenerator
      * @param array $data
      */
     public function __construct(
         Context $context,
         CollectionFactory $collectionFactory,
-        FormKey $formKey,
         Session $customerSession,
+        CacheKeyGenerator $cacheKeyGenerator,
         array $data = []
     ) {
         parent::__construct($context, $data);
         $this->collectionFactory = $collectionFactory;
-        $this->formKey = $formKey;
         $this->customerSession = $customerSession;
+        $this->cacheKeyGenerator = $cacheKeyGenerator;
     }
 
     /**
@@ -73,7 +75,6 @@ class ItemData extends Template
         $items = [];
         /** @var ProductInterface|Product $product */
         foreach ($productCollection as $product) {
-
             if ($attribute = $product->getAttributeText('unavailable_for_purchase')) {
                 if ($attribute->getText() === 'Yes') {
                     continue;
@@ -98,29 +99,16 @@ class ItemData extends Template
     }
 
     /**
-     * Function: getCacheLifetime
-     *
-     * @return bool|float|int|null
-     */
-    protected function getCacheLifetime()
-    {
-        // 1 month in seconds
-        return 60 * 60 * 24 * 30;
-    }
-
-    /**
      * Function: getCacheKeyInfo
      *
      * @return array
-     * @throws NoSuchEntityException
      */
     public function getCacheKeyInfo()
     {
-        return [
+        return $this->cacheKeyGenerator->getKey(
             $this->getNameInLayout(),
-            $this->_storeManager->getStore()->getCode(),
-            $this->_storeManager->getStore()->getCode(),
-        ];
+            true
+        );
     }
 
     /**
@@ -148,21 +136,6 @@ class ItemData extends Template
             : $product->getPrice();
     }
 
-    public function getJsLayout()
-    {
-        $jsLayout = parent::getJsLayout();
-        $decodedJsLayout = json_decode($jsLayout, true);
-        $decodedJsLayout['components']['beebots-quick-order-form']['post_url'] = $this->getFormPostUrl();
-        $decodedJsLayout['components']['beebots-quick-order-form']['form_key'] = $this->formKey->getFormKey();
-        $decodedJsLayout['components']['beebots-quick-order-form']['product_data'] = $this->getSimpleProducts();
-        return json_encode($decodedJsLayout);
-    }
-
-    public function getFormPostUrl()
-    {
-        return $this->escapeUrl($this->getUrl('quick-order/cart/add'));
-    }
-
     /**
      * @return int
      */
@@ -173,5 +146,10 @@ class ItemData extends Template
         } catch (Exception $e) {
             return 0;
         }
+    }
+
+    public function _toHtml()
+    {
+        return json_encode($this->getSimpleProducts());
     }
 }

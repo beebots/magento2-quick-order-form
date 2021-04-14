@@ -3,13 +3,12 @@
 namespace BeeBots\QuickOrderForm\Service;
 
 use BeeBots\QuickOrderForm\Model\Configuration;
-use Magento\Catalog\Api\Data\ProductInterface;
 use Magento\Catalog\Model\Product\Type;
 use Magento\Catalog\Model\ProductRepository;
 use Magento\Catalog\Model\ResourceModel\Product;
 use Magento\CatalogInventory\Model\StockRegistry;
 use Magento\Checkout\Model\Cart;
-use Magento\ConfigurableProduct\Model\Product\Type\Configurable;
+use Magento\Checkout\Model\Session;
 use Magento\Framework\Exception\LocalizedException;
 use Magento\Framework\Exception\NoSuchEntityException;
 
@@ -22,16 +21,6 @@ class AddToCartService
     private $productRepository;
 
     /**
-     * @var Configurable
-     */
-    private $configurable;
-
-    /**
-     * @var Product
-     */
-    private $productResource;
-
-    /**
      * @var StockRegistry
      */
     private $stockRegistry;
@@ -42,6 +31,11 @@ class AddToCartService
     private $cart;
 
     /**
+     * @var Session
+     */
+    private $checkoutSession;
+
+    /**
      * AddToCartService constructor.
      *
      * @param ProductRepository $productRepository
@@ -49,19 +43,18 @@ class AddToCartService
      * @param Product $productResource
      * @param StockRegistry $stockRegistry
      * @param Cart $cart
+     * @param Session $checkoutSession
      */
     public function __construct(
         ProductRepository $productRepository,
-        Configurable $configurable,
-        Product $productResource,
         StockRegistry $stockRegistry,
-        Cart $cart
+        Cart $cart,
+        Session $checkoutSession
     ) {
         $this->productRepository = $productRepository;
-        $this->configurable = $configurable;
-        $this->productResource = $productResource;
         $this->stockRegistry = $stockRegistry;
         $this->cart = $cart;
+        $this->checkoutSession = $checkoutSession;
     }
 
     /**
@@ -72,11 +65,14 @@ class AddToCartService
      * @param bool $resetTotalsCollectedFlag helpful if form is exposed on checkout
      *
      * @return array
+     * @throws LocalizedException
+     * @throws NoSuchEntityException
      */
     public function addProducts(array $ids, array $quantities, bool $resetTotalsCollectedFlag = false): array
     {
         $result = [];
         $productsAdded = false;
+        $quote = $this->checkoutSession->getQuote();
 
         // make sure product type is simple
         foreach ($ids as $index => $id) {
@@ -99,19 +95,19 @@ class AddToCartService
                     $result['client_errors']['invalid_skus'][] = $product->getSku();
                     continue;
                 }
-                $configurable = $this->getConfigurableProductFromSimple($product->getEntityId());
-                if ($configurable) {
-                    $configuration = $this->getProductConfigurationOfConfigurableFromSimple($configurable, $product);
-                    $configuration->setData('qty', $qty);
-                    $configuration->setData('used_quick_order', true);
-                    $this->cart->addProduct($configurable, $configuration);
-                } else {
-                    $configuration = new Configuration();
-                    $configuration->setData('qty', $qty);
-                    $configuration->setData('used_quick_order', true);
+
+                $configuration = new Configuration();
+                $configuration->setData('qty', $qty);
+                //add a cheap indicator for tracking
+                $configuration->setData('used_quick_order', true);
+
+                //if they are the first items in the cart lets add them. If not, add them to the quote.
+                if (! $quote->getItems()) {
                     $this->cart->addProduct($product, $configuration);
+                    $productsAdded = true;
+                } else {
+                    $quote->addProduct($product, $configuration);
                 }
-                $productsAdded = true;
             } catch (NoSuchEntityException $e) {
                 $result['client_errors']['invalid_skus'][] = "Invalid Sku for id: {$id}";
             } catch (LocalizedException $e) {
@@ -121,48 +117,18 @@ class AddToCartService
                 $result['client_errors']['invalid_skus'][] = "Invalid Sku for id: {$id}";
             }
         }
+
         if (! array_key_exists('client_errors', $result) && $productsAdded) {
             $this->cart->save();
-
-            if ($resetTotalsCollectedFlag) {
-                //if quick order is exposed on checkout, saving before other updates
-                //can prevent totals on existing cart items from being recalculated.
-                //Reset if needed.
-                $this->cart->getQuote()->setTotalsCollectedFlag(false);
-            }
-
         }
+
+        if ($resetTotalsCollectedFlag) {
+            //if quick order is exposed on checkout, saving before other updates
+            //can prevent totals on existing cart items from being recalculated.
+            //Reset if needed.
+            $quote->setTotalsCollectedFlag(false);
+        }
+
         return $result;
-    }
-
-    /**
-     * @param $simpleProductId
-     * @return bool|ProductInterface|mixed
-     * @throws NoSuchEntityException
-     */
-    private function getConfigurableProductFromSimple($simpleProductId)
-    {
-        $parentIds = $this->configurable->getParentIdsByChild($simpleProductId);
-        if ($parentIds && array_key_exists(0, $parentIds)) {
-            return $this->productRepository->getById($parentIds[0], false, null, true);
-        }
-        return false;
-    }
-
-    private function getProductConfigurationOfConfigurableFromSimple(
-        ProductInterface $parentProduct,
-        ProductInterface $product
-    ) {
-        /** @var Configurable $configurable */
-        /** @noinspection PhpUndefinedMethodInspection */
-        $configurable = $parentProduct->getTypeInstance();
-        /** @noinspection PhpParamsInspection */
-        $attributes = $configurable->getConfigurableAttributesAsArray($parentProduct);
-        $configuration = new Configuration();
-        foreach ($attributes as $key => $attribute) {
-            /** @noinspection PhpUndefinedMethodInspection */
-            $configuration->setData('super_attribute', [$key => $product->getData($attribute['attribute_code'])]);
-        }
-        return $configuration;
     }
 }

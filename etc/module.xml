@@ -4,6 +4,7 @@
     <module name="BeeBots_QuickOrderForm" setup_version="1.0.0">
         <sequence>
             <module name="Magento_Sales"/>
+            <module name="Banyan_Utilities"/>
         </sequence>
     </module>
 </config>

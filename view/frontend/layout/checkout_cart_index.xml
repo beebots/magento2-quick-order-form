@@ -9,7 +9,7 @@
                 <container name="checkout.quick.order.container" htmlTag="div" htmlClass="checkout-quick-order-container" after="checkout.cart.form">
                     <block
                         name="beebots.quick.order.uicomponent"
-                        class="BeeBots\QuickOrderForm\Block\ItemData"
+                        class="BeeBots\QuickOrderForm\Block\QuickOrder"
                         template="BeeBots_QuickOrderForm::script.phtml"
                         ifconfig="beebots/quick_order_form/enabled_on_checkout">
                         <arguments>
@@ -23,6 +23,9 @@
                                 </item>
                             </argument>
                         </arguments>
+
+                        <block name="quick.order.item.data" class="BeeBots\QuickOrderForm\Block\ItemData"/>
+
                     </block>
                 </container>
         </referenceContainer>

@@ -8,7 +8,7 @@
         <referenceContainer name="content">
             <block
                 name="beebots.quick.order.uicomponent"
-                class="BeeBots\QuickOrderForm\Block\ItemData"
+                class="BeeBots\QuickOrderForm\Block\QuickOrder"
                 template="BeeBots_QuickOrderForm::script.phtml"
                 ifconfig="beebots/quick_order_form/enabled">
                 <arguments>
@@ -22,6 +22,9 @@
                         </item>
                     </argument>
                 </arguments>
+
+                <block name="quick.order.item.data" class="BeeBots\QuickOrderForm\Block\ItemData"/>
+
             </block>
         </referenceContainer>
     </body>
