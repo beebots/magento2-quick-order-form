@@ -103,9 +103,13 @@ class AddToCartService
                 if ($configurable) {
                     $configuration = $this->getProductConfigurationOfConfigurableFromSimple($configurable, $product);
                     $configuration->setData('qty', $qty);
+                    $configuration->setData('used_quick_order', true);
                     $this->cart->addProduct($configurable, $configuration);
                 } else {
-                    $this->cart->addProduct($product, $qty);
+                    $configuration = new Configuration();
+                    $configuration->setData('qty', $qty);
+                    $configuration->setData('used_quick_order', true);
+                    $this->cart->addProduct($product, $configuration);
                 }
                 $productsAdded = true;
             } catch (NoSuchEntityException $e) {
